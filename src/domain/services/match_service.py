@@ -1,6 +1,8 @@
 import random
 import uuid
 
+from fastapi import HTTPException
+
 from src.domain.models.match import Match
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
@@ -26,18 +28,18 @@ class MatchService:
 
     def validate_movement(self, movement: Movement, match: Match) -> None:
         if match.status != Status.PLAYING:
-            raise ValueError("Match has already ended")
+            raise HTTPException(status_code=400, detail="Match has already ended")
 
         if match.turn != movement.playerId:
-            raise ValueError("It's not your turn")
+            raise HTTPException(status_code=400, detail="It's not your turn")
 
         x = movement.position["x"]
         y = movement.position["y"]
         if x >= self.BOARD_SIZE or y >= self.BOARD_SIZE:
-            raise ValueError("Position is out of the board")
+            raise HTTPException(status_code=400, detail="Position is out of the board")
 
         if match.board[x][y] is not None:
-            raise ValueError("Position is not available")
+            raise HTTPException(status_code=400, detail="Position is not available")
 
     def check_same_raw(self, board: list[list[str | None]]) -> bool:
         for row in board:
@@ -110,24 +112,35 @@ class MatchService:
 
         return match
 
-    def move(self, movement: Movement) -> None:
+    def move(self, movement: Movement) -> str:
+        message = ""
         if match := self.match_repository.get_match(movement.matchId):
             self.validate_movement(movement, match)
 
             x = movement.position["x"]
             y = movement.position["y"]
             match.board[x][y] = movement.playerId
-            match.turn = "O" if match.turn == "X" else "X"
 
             match.status = self.check_movement(match.board)
+            next_turn = "O" if match.turn == "X" else "X"
+            match match.status:
+                case Status.WINNER:
+                    message = f"Player '{match.turn}' Wins!!!!"
+                case Status.DRAW:
+                    message = "Draw!!!"
+                case Status.PLAYING:
+                    message = f"Movement performed. Next turn: {next_turn}"
 
+            match.turn = next_turn
             self.match_repository.save_match(match)
 
         else:
-            raise ValueError("Match not found")
+            raise HTTPException(status_code=404, detail="Match not found")
+
+        return message
 
     def get_match_status(self, match_id: str) -> Status:
         if match := self.match_repository.get_match(match_id):
             return match.status
         else:
-            raise ValueError("Match not found")
+            raise HTTPException(status_code=404, detail="Match not found")

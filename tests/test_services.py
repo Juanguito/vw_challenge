@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from fastapi import HTTPException
 
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
@@ -30,7 +31,7 @@ def test_get_match_status(service):
 def test_match_status_match_not_found(service):
     service.create_match()
 
-    with pytest.raises(ValueError, match="Match not found"):
+    with pytest.raises(HTTPException, match="Match not found"):
         service.get_match_status(uuid.uuid4())
 
 
@@ -39,11 +40,12 @@ def test_make_valid_move(service):
     match.turn = "X"
     movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
-    service.move(movement)
+    message = service.move(movement)
 
     assert match.board[0][0] == "X"
     assert match.turn == "O"
     assert match.status == Status.PLAYING
+    assert message == "Movement performed. Next turn: O"
 
 
 def test_winner(service):
@@ -56,9 +58,10 @@ def test_winner(service):
     ]
     movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 2})
 
-    service.move(movement)
+    message = service.move(movement)
 
     assert match.status == Status.WINNER
+    assert message == "Player 'X' Wins!!!!"
 
 
 def test_draw(service):
@@ -71,9 +74,10 @@ def test_draw(service):
     ]
     movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 2})
 
-    service.move(movement)
+    message = service.move(movement)
 
     assert match.status == Status.DRAW
+    assert message == "Draw!!!"
 
 
 def test_new_movements_not_allowed(service):
@@ -81,7 +85,7 @@ def test_new_movements_not_allowed(service):
     match.status = Status.WINNER
     movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
-    with pytest.raises(ValueError, match="Match has already ended"):
+    with pytest.raises(HTTPException, match="Match has already ended"):
         service.move(movement1)
 
 
@@ -93,7 +97,7 @@ def test_invalid_turn(service):
 
     service.move(movement1)
 
-    with pytest.raises(ValueError, match="It's not your turn"):
+    with pytest.raises(HTTPException, match="It's not your turn"):
         service.move(movement2)
 
 
@@ -103,7 +107,7 @@ def test_position_occupied(service):
     match.board[0][0] = "O"
     movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
-    with pytest.raises(ValueError, match="Position is not available"):
+    with pytest.raises(HTTPException, match="Position is not available"):
         service.move(movement1)
 
 
@@ -112,7 +116,7 @@ def test_x_position_out_of_bounds(service):
     match.turn = "X"
     movement1 = Movement(matchId=match.id, playerId="X", position={"x": 4, "y": 0})
 
-    with pytest.raises(ValueError, match="Position is out of the board"):
+    with pytest.raises(HTTPException, match="Position is out of the board"):
         service.move(movement1)
 
 
@@ -121,5 +125,5 @@ def test_y_position_out_of_bounds(service):
     match.turn = "X"
     movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 4})
 
-    with pytest.raises(ValueError, match="Position is out of the board"):
+    with pytest.raises(HTTPException, match="Position is out of the board"):
         service.move(movement1)
