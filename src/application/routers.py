@@ -5,10 +5,11 @@ from fastapi import APIRouter, HTTPException
 from src.domain.models.movement import Movement
 from src.domain.services.match_service import MatchService
 from src.infra.repositories.in_memory_repository import InMemoryRepository
+from src.infra.repositories.postgresql_repository import PostgreSQLRepository
 
 router = APIRouter()
 
-match_repository = InMemoryRepository()
+match_repository = PostgreSQLRepository()
 match_service = MatchService(match_repository)
 
 
