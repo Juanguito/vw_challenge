@@ -11,3 +11,7 @@ class InMemoryRepository(MatchRepository):
     def save_match(self, match: Match) -> Match:
         self.cache[match.id] = match
         return match
+
+    def update_match(self, match: Match) -> Match:
+        self.cache[match.id] = match
+        return match

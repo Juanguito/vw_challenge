@@ -48,15 +48,63 @@ def test_make_valid_move(service):
     assert message == "Movement performed. Next turn: O"
 
 
-def test_winner(service):
+def test_row_winner(service):
     match = service.create_match()
     match.turn = "X"
     match.board = [
+        [None, None, None],
         ["X", "X", None],
         [None, None, None],
+    ]
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 1, "y": 2})
+
+    message = service.move(movement)
+
+    assert match.status == Status.WINNER
+    assert message == "Player 'X' Wins!!!!"
+
+
+def test_col_winner(service):
+    match = service.create_match()
+    match.turn = "X"
+    match.board = [
+        [None, "X", None],
+        [None, "X", None],
         [None, None, None],
     ]
-    movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 2})
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 2, "y": 1})
+
+    message = service.move(movement)
+
+    assert match.status == Status.WINNER
+    assert message == "Player 'X' Wins!!!!"
+
+
+def test_first_diagonal_winner(service):
+    match = service.create_match()
+    match.turn = "X"
+    match.board = [
+        ["X", None, None],
+        [None, "X", None],
+        [None, None, None],
+    ]
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 2, "y": 2})
+
+    message = service.move(movement)
+
+    assert match.status == Status.WINNER
+    assert message == "Player 'X' Wins!!!!"
+
+
+def test_last_diagonal_winner(service):
+    match = service.create_match()
+    match.turn = "X"
+    match.board = [
+        [None, None, "X"],
+        [None, "X", None],
+        [None, None, None],
+    ]
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 2, "y": 0})
 
     message = service.move(movement)
 
@@ -91,14 +139,11 @@ def test_new_movements_not_allowed(service):
 
 def test_invalid_turn(service):
     match = service.create_match()
-    match.turn = "X"
-    movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
-    movement2 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
-
-    service.move(movement1)
+    match.turn = "O"
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
     with pytest.raises(HTTPException, match="It's not your turn"):
-        service.move(movement2)
+        service.move(movement)
 
 
 def test_position_occupied(service):

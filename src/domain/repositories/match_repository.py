@@ -11,3 +11,7 @@ class MatchRepository(ABC):
     @abstractmethod
     def save_match(self, match: Match) -> Match:
         pass
+
+    @abstractmethod
+    def update_match(self, match: Match) -> Match:
+        pass

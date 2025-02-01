@@ -44,34 +44,38 @@ class MatchService:
     def check_same_raw(self, board: list[list[str | None]]) -> bool:
         for row in board:
             value = row[0]
-            for i in range(1, self.BOARD_SIZE):
-                if row[i] != value:
-                    return False
+            if value is not None and all(position == value for position in row):
+                return True
 
-        return True
+        return False
 
     def check_same_col(self, board: list[list[str | None]]) -> bool:
         for i in range(0, self.BOARD_SIZE):
             value = board[0][i]
-            for row in board:
-                if row[i] != value:
-                    return False
+            if value is not None and all(row[i] == value for row in board):
+                return True
 
-        return True
+        return False
 
     def check_first_diagonal(self, board: list[list[str | None]]) -> bool:
         value = board[0][0]
-        for i in range(1, self.BOARD_SIZE):
-            if board[i][i] != value:
-                return False
+        if value is not None and all(
+            board[i][i] == value for i in range(self.BOARD_SIZE)
+        ):
+            return True
 
-        return True
+        return False
 
     def check_last_diagonal(self, board: list[list[str | None]]) -> bool:
-        value = board[0][self.BOARD_SIZE - 1]
-        for i in range(self.BOARD_SIZE - 1, -1, -1):
-            if board[i][i] != value:
+        j = self.BOARD_SIZE - 1
+        value = board[0][j]
+        if value is None:
+            return False
+
+        for row in board:
+            if row[j] != value:
                 return False
+            j -= 1
 
         return True
 
@@ -122,17 +126,16 @@ class MatchService:
             match.board[x][y] = movement.playerId
 
             match.status = self.check_movement(match.board)
-            next_turn = "O" if match.turn == "X" else "X"
+            match.turn = "O" if match.turn == "X" else "X"
             match match.status:
                 case Status.WINNER:
-                    message = f"Player '{match.turn}' Wins!!!!"
+                    message = f"Player '{movement.playerId}' Wins!!!!"
                 case Status.DRAW:
                     message = "Draw!!!"
                 case Status.PLAYING:
-                    message = f"Movement performed. Next turn: {next_turn}"
+                    message = f"Movement performed. Next turn: {match.turn}"
 
-            match.turn = next_turn
-            self.match_repository.save_match(match)
+            self.match_repository.update_match(match)
 
         else:
             raise HTTPException(status_code=404, detail="Match not found")
