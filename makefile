@@ -6,7 +6,7 @@ up:
 down:
 	docker-compose down
 
-format:
+check:
 	@echo "🔍 Analizando código con Flake8..."
 	flake8 $(PYTHON_FILES)
 	@echo "🔧 Formateando código con Black..."
@@ -23,9 +23,10 @@ coverage:
 .PHONY: help
 
 help:
-	@echo "Comandos:"
-	@echo "  up: Levanta los contenedores de la aplicación."
-	@echo "  format: Formatea el código Python con black, ejecuta la verificación de tipos con mypy y el linting con flake8."
-	@echo "  test: Ejecuta los tests unitarios."
-	@echo "  coverage: Ejecuta los tests y genera un reporte de cobertura."
-	@echo "  help: Muestra esta ayuda."
+	@echo "Commands:"
+	@echo "  up: Starts application containers."
+	@echo "  down: Stops application containers."
+	@echo "  check: Formats the code using black, verifies types with mypy and linting with flake8."
+	@echo "  test: Runs unit tests."
+	@echo "  coverage: Runs unit tests and generates a coverage report."
+	@echo "  help: Shows this help."

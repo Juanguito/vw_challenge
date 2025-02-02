@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 
 from dotenv import load_dotenv
 from sqlalchemy import Column, String, create_engine
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.domain.models.match import Match
@@ -21,7 +22,7 @@ class Base(DeclarativeBase):
 class MatchDB(Base):
     __tablename__ = "matches"
 
-    id = Column(String, primary_key=True, default=uuid4, index=True)
+    id = Column(UUID_PG(as_uuid=True), primary_key=True, default=uuid4, index=True)
     status = Column(String, nullable=False)
     turn = Column(String, nullable=False)
     board = Column(String, nullable=False)
@@ -37,7 +38,7 @@ class MatchDB(Base):
     @staticmethod
     def from_match(match: Match) -> "MatchDB":
         return MatchDB(
-            id=str(match.id),
+            id=match.id,
             status=match.status.value,
             turn=match.turn,
             board=MatchDB.board_to_string(match.board),
@@ -45,7 +46,7 @@ class MatchDB(Base):
 
     def to_match(self) -> Match:
         return Match(
-            id=UUID(self.id),
+            id=self.id,
             status=Status(self.status),
             turn=str(self.turn),
             board=MatchDB.string_to_board(str(self.board)),

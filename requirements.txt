@@ -1,10 +1,13 @@
+alembic
+black
 fastapi
-uvicorn
+flake8
+httpx
+mypy
 SQLAlchemy
 psycopg2-binary
 pydantic
-python-dotenv
-alembic
 pytest
-httpx
+python-dotenv
 sqlalchemy
+uvicorn
