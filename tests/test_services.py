@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
@@ -7,11 +8,15 @@ from src.domain.models.movement import Movement
 from src.domain.models.status import Status
 from src.domain.services.match_service import MatchService
 from src.infra.repositories.in_memory_repository import InMemoryRepository
+from src.infra.repositories.logging_service import LoggingService
 
 
 @pytest.fixture
 def service():
-    return MatchService(match_repository=InMemoryRepository())
+    return MatchService(
+        match_repository=InMemoryRepository(MagicMock()),
+        logger=LoggingService(),
+    )
 
 
 def test_create_match(service):

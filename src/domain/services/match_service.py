@@ -7,6 +7,7 @@ from src.domain.models.match import Match
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
 from src.domain.repositories.match_repository import MatchRepository
+from src.domain.services.logger_interface import LoggerInterface
 
 
 class MatchService:
@@ -14,8 +15,9 @@ class MatchService:
     PLAYER_IDS = ["X", "O"]
     MOVEMENT_POSITIONS = ["X", "x", "Y", "y"]
 
-    def __init__(self, match_repository: MatchRepository):
+    def __init__(self, match_repository: MatchRepository, logger: LoggerInterface):
         self.match_repository = match_repository
+        self.logger = logger
 
     def init_board(self) -> list[list[str | None]]:
         board: list[list[str | None]] = []
@@ -33,6 +35,7 @@ class MatchService:
     def validate_movement(self, movement: Movement, match: Match) -> None:
         if movement.playerId not in self.PLAYER_IDS:
             player_list = [f"{player}" for player in self.PLAYER_IDS]
+            self.logger.info(f"Player is not valid: {movement.playerId}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Player is not valid, must be one of: {player_list}",
@@ -42,6 +45,7 @@ class MatchService:
             "y" in movement.position or "Y" in movement.position
         ):
             positions_list = [f"{positions}" for positions in self.MOVEMENT_POSITIONS]
+            self.logger.info(f"Position is not valid: {movement.position}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Position is not valid, must be one of: {positions_list}",
@@ -57,6 +61,7 @@ class MatchService:
         y = self.get_y(movement.position)
 
         if x >= self.BOARD_SIZE or y >= self.BOARD_SIZE:
+            self.logger.info(f"Position is out of the board: {x}")
             raise HTTPException(status_code=400, detail="Position is out of the board")
 
         if match.board[x][y] is not None:
@@ -132,6 +137,7 @@ class MatchService:
             status=Status.PLAYING,
         )
         self.match_repository.save_match(match)
+        self.logger.info(f"Match created: {match.id}")
 
         return match
 
@@ -159,10 +165,13 @@ class MatchService:
         else:
             raise HTTPException(status_code=404, detail="Match not found")
 
+        self.logger.info("Movement performed")
+
         return message
 
     def get_match_status(self, match_id: UUID) -> Status:
         if match := self.match_repository.get_match(match_id):
             return match.status
         else:
+            self.logger.info(f"Match not found: {match_id}")
             raise HTTPException(status_code=404, detail="Match not found")

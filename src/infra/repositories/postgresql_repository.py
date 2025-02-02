@@ -10,6 +10,7 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from src.domain.models.match import Match
 from src.domain.models.status import Status
 from src.domain.repositories.match_repository import MatchRepository
+from src.domain.services.logger_interface import LoggerInterface
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -55,7 +56,9 @@ class MatchDB(Base):
 
 class PostgreSQLRepository(MatchRepository):
 
-    def __init__(self):
+    def __init__(self, logger: LoggerInterface):
+        self.logger = logger
+
         self.engine = create_engine(DATABASE_URL)
 
         self.SessionLocal = sessionmaker(
@@ -66,15 +69,18 @@ class PostgreSQLRepository(MatchRepository):
     def save_match(self, match: Match) -> Match:
         db = self.SessionLocal()
         try:
+            self.logger.info(f"Saving match:\n{match}")
             match_db = MatchDB.from_match(match)
 
             db.add(match_db)
             db.commit()
             db.refresh(match_db)
+            self.logger.info("Match SAVED")
 
             return match_db.to_match()
         except Exception as e:
             db.rollback()
+            self.logger.error(f"Error saving match:{match}\nError: {e}")
             raise Exception(f"Error saving match: {e}")
         finally:
             db.close()
@@ -82,6 +88,7 @@ class PostgreSQLRepository(MatchRepository):
     def update_match(self, match: Match) -> Match:
         db = self.SessionLocal()
         try:
+            self.logger.info(f"Updating match:\n{match}")
             if match_db := db.query(MatchDB).filter(MatchDB.id == match.id).first():
                 match_db.status = match.status.value
                 match_db.turn = match.turn
@@ -89,6 +96,7 @@ class PostgreSQLRepository(MatchRepository):
 
                 db.commit()
                 db.refresh(match_db)
+                self.logger.info("Match UPDATED!")
 
                 return match_db.to_match()
             else:
@@ -96,6 +104,7 @@ class PostgreSQLRepository(MatchRepository):
 
         except Exception as e:
             db.rollback()
+            self.logger.error(f"Error updating match:{match}\nError: {e}")
             raise Exception(f"Error updating match: {e}")
         finally:
             db.close()
@@ -103,11 +112,16 @@ class PostgreSQLRepository(MatchRepository):
     def get_match(self, match_id: UUID) -> Match | None:
         db = self.SessionLocal()
         try:
+            self.logger.info(f"Retrieving match:\n{match_id}")
             if match_db := db.query(MatchDB).filter(MatchDB.id == match_id).first():
-                return match_db.to_match()
+                match = match_db.to_match()
+                self.logger.info(f"Match: {match} RETRIEVED!")
+
+                return match
             else:
                 return None
         except Exception as e:
+            self.logger.error(f"Error getting match!\nMatch:{match_id}\nError: {e}")
             raise Exception(f"Error getting match: {e}")
         finally:
             db.close()
