@@ -120,7 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+# .env enabled only for this project, but it must be disabled for other projects
 .venv
 env/
 venv/
