@@ -12,6 +12,7 @@ from src.domain.repositories.match_repository import MatchRepository
 class MatchService:
     BOARD_SIZE = 3
     PLAYER_IDS = ["X", "O"]
+    MOVEMENT_POSITIONS = ["X", "x", "Y", "y"]
 
     def __init__(self, match_repository: MatchRepository):
         self.match_repository = match_repository
@@ -19,12 +20,15 @@ class MatchService:
     def init_board(self) -> list[list[str | None]]:
         board: list[list[str | None]] = []
         for _ in range(self.BOARD_SIZE):
-            row: list[str | None] = []
-            board.append(row)
-            for _ in range(self.BOARD_SIZE):
-                row.append(None)
+            board.append([None for _ in range(self.BOARD_SIZE)])
 
         return board
+
+    def get_x(self, position: dict[str, int]) -> int:
+        return position["x"] if position.get("x") is not None else position["X"]
+
+    def get_y(self, position: dict[str, int]) -> int:
+        return position["y"] if position.get("y") is not None else position["Y"]
 
     def validate_movement(self, movement: Movement, match: Match) -> None:
         if movement.playerId not in self.PLAYER_IDS:
@@ -34,14 +38,24 @@ class MatchService:
                 detail=f"Player is not valid, must be one of: {player_list}",
             )
 
+        if not ("x" in movement.position or "X" in movement.position) or not (
+            "y" in movement.position or "Y" in movement.position
+        ):
+            positions_list = [f"{positions}" for positions in self.MOVEMENT_POSITIONS]
+            raise HTTPException(
+                status_code=400,
+                detail=f"Position is not valid, must be one of: {positions_list}",
+            )
+
         if match.status != Status.PLAYING:
             raise HTTPException(status_code=400, detail="Match has already ended")
 
         if match.turn != movement.playerId:
             raise HTTPException(status_code=400, detail="It's not your turn")
 
-        x = movement.position["x"]
-        y = movement.position["y"]
+        x = self.get_x(movement.position)
+        y = self.get_y(movement.position)
+
         if x >= self.BOARD_SIZE or y >= self.BOARD_SIZE:
             raise HTTPException(status_code=400, detail="Position is out of the board")
 
@@ -126,8 +140,8 @@ class MatchService:
         if match := self.match_repository.get_match(movement.matchId):
             self.validate_movement(movement, match)
 
-            x = movement.position["x"]
-            y = movement.position["y"]
+            x = self.get_x(movement.position)
+            y = self.get_y(movement.position)
             match.board[x][y] = movement.playerId
 
             match.status = self.check_movement(match.board)

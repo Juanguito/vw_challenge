@@ -137,6 +137,15 @@ def test_player_not_valid(service):
         service.move(movement)
 
 
+def test_positions_not_valid(service):
+    match = service.create_match()
+    match.status = Status.PLAYING
+    movement = Movement(matchId=match.id, playerId="Z", position={"x": 0, "x": 0})
+
+    with pytest.raises(HTTPException):
+        service.move(movement)
+
+
 def test_new_movements_not_allowed(service):
     match = service.create_match()
     match.status = Status.WINNER
