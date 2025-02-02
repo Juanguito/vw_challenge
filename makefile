@@ -1,5 +1,12 @@
 PYTHON_FILES = $(shell find . -name "*.py" -not -path "./.venv/*")
 
+local_setup:
+	python3 -m venv .venv
+	. .venv/bin/activate && pip install --upgrade pip && pip install -r requirements/dev/requirements.txt
+
+local_clean:
+	rm -rf .venv
+
 up:
 	docker-compose up --build -d
 
@@ -14,19 +21,22 @@ check:
 	@echo "📊 Verificando tipos con MyPy..."
 	mypy $(PYTHON_FILES)
 
+logs:
+	docker-compose logs -f
+
 test:
 	pytest
 
-coverage:
-	pytest --cov=vw_challenge --cov-report=term --cov-report=html
 
 .PHONY: help
 
 help:
 	@echo "Commands:"
+	@echo "  local_setup: Creates a virtual environment and installs the dependencies."
+	@echo "  local_clean: Removes the virtual environment."
 	@echo "  up: Starts application containers."
 	@echo "  down: Stops application containers."
 	@echo "  check: Formats the code using black, verifies types with mypy and linting with flake8."
+	@echo "  logs: Shows the logs of the application."
 	@echo "  test: Runs unit tests."
-	@echo "  coverage: Runs unit tests and generates a coverage report."
 	@echo "  help: Shows this help."

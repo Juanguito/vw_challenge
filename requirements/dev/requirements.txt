@@ -1,0 +1,6 @@
+-r ../prod/requirements.txt
+black
+fastapi
+flake8
+mypy
+pytest
