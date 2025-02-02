@@ -19,14 +19,21 @@ class MatchService:
     def init_board(self) -> list[list[str | None]]:
         board = []
         for _ in range(self.BOARD_SIZE):
-            raw = []
-            board.append(raw)
+            row = []
+            board.append(row)
             for _ in range(self.BOARD_SIZE):
-                raw.append(None)
+                row.append(None)
 
         return board
 
     def validate_movement(self, movement: Movement, match: Match) -> None:
+        if movement.playerId not in self.PLAYER_IDS:
+            player_list = [f"'{player}'" for player in self.PLAYER_IDS]
+            raise HTTPException(
+                status_code=400,
+                detail=f"Player is not valid, must be one of: {player_list}",
+            )
+
         if match.status != Status.PLAYING:
             raise HTTPException(status_code=400, detail="Match has already ended")
 
@@ -41,7 +48,7 @@ class MatchService:
         if match.board[x][y] is not None:
             raise HTTPException(status_code=400, detail="Position is not available")
 
-    def check_same_raw(self, board: list[list[str | None]]) -> bool:
+    def check_same_row(self, board: list[list[str | None]]) -> bool:
         for row in board:
             value = row[0]
             if value is not None and all(position == value for position in row):
@@ -88,16 +95,12 @@ class MatchService:
             return True
 
     def check_movement(self, board: list[list[str | None]]) -> Status:
-        if self.check_same_raw(board):
-            return Status.WINNER
-
-        if self.check_same_col(board):
-            return Status.WINNER
-
-        if self.check_first_diagonal(board):
-            return Status.WINNER
-
-        if self.check_last_diagonal(board):
+        if (
+            self.check_same_row(board)
+            or self.check_same_col(board)
+            or self.check_first_diagonal(board)
+            or self.check_last_diagonal(board)
+        ):
             return Status.WINNER
 
         if self.check_draw(board):

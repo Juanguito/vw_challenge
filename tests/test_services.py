@@ -130,11 +130,22 @@ def test_draw(service):
 
 def test_new_movements_not_allowed(service):
     match = service.create_match()
+    match.status = Status.PLAYING
+    movement = Movement(matchId=match.id, playerId="Z", position={"x": 0, "y": 0})
+
+    with pytest.raises(
+        HTTPException, match="Player is not valid, must be one of: ['X', 'O']"
+    ):
+        service.move(movement)
+
+
+def test_new_movements_not_allowed(service):
+    match = service.create_match()
     match.status = Status.WINNER
-    movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
     with pytest.raises(HTTPException, match="Match has already ended"):
-        service.move(movement1)
+        service.move(movement)
 
 
 def test_invalid_turn(service):
@@ -150,25 +161,25 @@ def test_position_occupied(service):
     match = service.create_match()
     match.turn = "X"
     match.board[0][0] = "O"
-    movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 0})
 
     with pytest.raises(HTTPException, match="Position is not available"):
-        service.move(movement1)
+        service.move(movement)
 
 
 def test_x_position_out_of_bounds(service):
     match = service.create_match()
     match.turn = "X"
-    movement1 = Movement(matchId=match.id, playerId="X", position={"x": 4, "y": 0})
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 4, "y": 0})
 
     with pytest.raises(HTTPException, match="Position is out of the board"):
-        service.move(movement1)
+        service.move(movement)
 
 
 def test_y_position_out_of_bounds(service):
     match = service.create_match()
     match.turn = "X"
-    movement1 = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 4})
+    movement = Movement(matchId=match.id, playerId="X", position={"x": 0, "y": 4})
 
     with pytest.raises(HTTPException, match="Position is out of the board"):
-        service.move(movement1)
+        service.move(movement)
