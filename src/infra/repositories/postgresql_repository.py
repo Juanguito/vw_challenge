@@ -4,22 +4,24 @@ from uuid import UUID, uuid4
 
 from dotenv import load_dotenv
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from src.domain.models.match import Match
+from src.domain.models.status import Status
+from src.domain.repositories.match_repository import MatchRepository
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 class MatchDB(Base):
     __tablename__ = "matches"
 
-    id = Column(UUID_PG(as_uuid=True), primary_key=True, default=uuid4, index=True)
+    id = Column(String, primary_key=True, default=uuid4, index=True)
     status = Column(String, nullable=False)
     turn = Column(String, nullable=False)
     board = Column(String, nullable=False)
@@ -35,7 +37,7 @@ class MatchDB(Base):
     @staticmethod
     def from_match(match: Match) -> "MatchDB":
         return MatchDB(
-            id=match.id,
+            id=str(match.id),
             status=match.status.value,
             turn=match.turn,
             board=MatchDB.board_to_string(match.board),
@@ -43,14 +45,14 @@ class MatchDB(Base):
 
     def to_match(self) -> Match:
         return Match(
-            id=self.id,
-            status=self.status,
-            turn=self.turn,
-            board=MatchDB.string_to_board(self.board),
+            id=UUID(self.id),
+            status=Status(self.status),
+            turn=str(self.turn),
+            board=MatchDB.string_to_board(str(self.board)),
         )
 
 
-class PostgreSQLRepository:
+class PostgreSQLRepository(MatchRepository):
 
     def __init__(self):
         self.engine = create_engine(DATABASE_URL)

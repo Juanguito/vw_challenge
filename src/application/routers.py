@@ -1,10 +1,9 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from src.domain.models.movement import Movement
 from src.domain.services.match_service import MatchService
-from src.infra.repositories.in_memory_repository import InMemoryRepository
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
 
 router = APIRouter()

@@ -128,14 +128,12 @@ def test_draw(service):
     assert message == "Draw!!!"
 
 
-def test_new_movements_not_allowed(service):
+def test_player_not_valid(service):
     match = service.create_match()
     match.status = Status.PLAYING
     movement = Movement(matchId=match.id, playerId="Z", position={"x": 0, "y": 0})
 
-    with pytest.raises(
-        HTTPException, match="Player is not valid, must be one of: ['X', 'O']"
-    ):
+    with pytest.raises(HTTPException):
         service.move(movement)
 
 

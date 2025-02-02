@@ -27,7 +27,8 @@ target_metadata = Base.metadata
 # ... etc.
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://fastapi_user:fastapi_pass@localhost:5432/fastapi_db"
+    "DATABASE_URL",
+    "postgresql://fastapi_user:fastapi_pass@localhost:5432/fastapi_db",
 )
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 

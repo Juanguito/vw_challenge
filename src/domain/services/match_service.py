@@ -1,5 +1,5 @@
 import random
-import uuid
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 
@@ -17,9 +17,9 @@ class MatchService:
         self.match_repository = match_repository
 
     def init_board(self) -> list[list[str | None]]:
-        board = []
+        board: list[list[str | None]] = []
         for _ in range(self.BOARD_SIZE):
-            row = []
+            row: list[str | None] = []
             board.append(row)
             for _ in range(self.BOARD_SIZE):
                 row.append(None)
@@ -28,7 +28,7 @@ class MatchService:
 
     def validate_movement(self, movement: Movement, match: Match) -> None:
         if movement.playerId not in self.PLAYER_IDS:
-            player_list = [f"'{player}'" for player in self.PLAYER_IDS]
+            player_list = [f"{player}" for player in self.PLAYER_IDS]
             raise HTTPException(
                 status_code=400,
                 detail=f"Player is not valid, must be one of: {player_list}",
@@ -94,6 +94,8 @@ class MatchService:
         ):
             return True
 
+        return False
+
     def check_movement(self, board: list[list[str | None]]) -> Status:
         if (
             self.check_same_row(board)
@@ -110,7 +112,7 @@ class MatchService:
 
     def create_match(self) -> Match:
         match = Match(
-            id=uuid.uuid4(),
+            id=uuid4(),
             board=self.init_board(),
             turn=random.choice(self.PLAYER_IDS),
             status=Status.PLAYING,
@@ -145,7 +147,7 @@ class MatchService:
 
         return message
 
-    def get_match_status(self, match_id: str) -> Status:
+    def get_match_status(self, match_id: UUID) -> Status:
         if match := self.match_repository.get_match(match_id):
             return match.status
         else:
