@@ -1,8 +1,15 @@
 import random
 from uuid import UUID, uuid4
 
-from fastapi import HTTPException
-
+from src.domain.errors import (
+    MatchAlreadyEndedException,
+    MatchNotFoundException,
+    PlayerNotValidException,
+    PositionNotAvailableException,
+    PositionNotValidException,
+    PositionOutOfBoundsException,
+    TurnNotValidException,
+)
 from src.domain.models.match import Match
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
@@ -36,9 +43,8 @@ class MatchService:
         if movement.playerId not in self.PLAYER_IDS:
             player_list = [f"{player}" for player in self.PLAYER_IDS]
             self.logger.info(f"Player is not valid: {movement.playerId}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Player is not valid, must be one of: {player_list}",
+            raise PlayerNotValidException(
+                f"Player is not valid, must be one of: {player_list}"
             )
 
         if not ("x" in movement.position or "X" in movement.position) or not (
@@ -46,26 +52,31 @@ class MatchService:
         ):
             positions_list = [f"{positions}" for positions in self.MOVEMENT_POSITIONS]
             self.logger.info(f"Position is not valid: {movement.position}")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Position is not valid, must be one of: {positions_list}",
+            raise PositionNotValidException(
+                f"Position is not valid, must be one of: {positions_list}",
             )
 
         if match.status != Status.PLAYING:
-            raise HTTPException(status_code=400, detail="Match has already ended")
+            raise MatchAlreadyEndedException(
+                f"Match {movement.matchId} has already ended"
+            )
 
         if match.turn != movement.playerId:
-            raise HTTPException(status_code=400, detail="It's not your turn")
+            raise TurnNotValidException(
+                f"Player {movement.playerId}, it's not your turn"
+            )
 
         x = self.get_x(movement.position)
         y = self.get_y(movement.position)
 
         if x >= self.BOARD_SIZE or y >= self.BOARD_SIZE:
-            self.logger.info(f"Position is out of the board: {x}")
-            raise HTTPException(status_code=400, detail="Position is out of the board")
+            self.logger.info(f"Position [{x}, {y}] is out of the board")
+            raise PositionOutOfBoundsException(
+                f"Position [{x}, {y}] is out of the board"
+            )
 
         if match.board[x][y] is not None:
-            raise HTTPException(status_code=400, detail="Position is not available")
+            raise PositionNotAvailableException(f"Position [{x}, {y}] is not available")
 
     def check_same_row(self, board: list[list[str | None]]) -> bool:
         for row in board:
@@ -163,7 +174,7 @@ class MatchService:
             self.match_repository.update_match(match)
 
         else:
-            raise HTTPException(status_code=404, detail="Match not found")
+            raise MatchNotFoundException(f"Match {movement.matchId} not found")
 
         self.logger.info("Movement performed")
 
@@ -174,4 +185,4 @@ class MatchService:
             return match.status
         else:
             self.logger.info(f"Match not found: {match_id}")
-            raise HTTPException(status_code=404, detail="Match not found")
+            raise MatchNotFoundException(f"Match {match_id} not found")

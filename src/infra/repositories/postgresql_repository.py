@@ -7,6 +7,13 @@ from sqlalchemy import Column, String, create_engine
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+from src.domain.errors import (
+    DatabaseEnvVarNotSetException,
+    DatabaseGetMatchException,
+    DatabaseMatchNotFoundException,
+    DatabaseSaveMatchException,
+    DatabaseUpdateMatchException,
+)
 from src.domain.models.match import Match
 from src.domain.models.status import Status
 from src.domain.repositories.match_repository import MatchRepository
@@ -60,7 +67,7 @@ class PostgreSQLRepository(MatchRepository):
         self.logger = logger
 
         if DATABASE_URL is None:
-            raise Exception("DATABASE_URL env variable is not set")
+            raise DatabaseEnvVarNotSetException("DATABASE_URL env variable is not set")
 
         self.engine = create_engine(DATABASE_URL)
 
@@ -81,10 +88,11 @@ class PostgreSQLRepository(MatchRepository):
             self.logger.info("Match SAVED")
 
             return match_db.to_match()
+
         except Exception as e:
             db.rollback()
             self.logger.error(f"Error saving match:{match}\nError: {e}")
-            raise Exception(f"Error saving match: {e}")
+            raise DatabaseSaveMatchException(f"Error saving match: {e}")
         finally:
             db.close()
 
@@ -103,12 +111,12 @@ class PostgreSQLRepository(MatchRepository):
 
                 return match_db.to_match()
             else:
-                raise Exception("Match not found")
+                raise DatabaseMatchNotFoundException("Match not found")
 
         except Exception as e:
             db.rollback()
             self.logger.error(f"Error updating match:{match}\nError: {e}")
-            raise Exception(f"Error updating match: {e}")
+            raise DatabaseUpdateMatchException(f"Error updating match: {e}")
         finally:
             db.close()
 
@@ -123,8 +131,9 @@ class PostgreSQLRepository(MatchRepository):
                 return match
             else:
                 return None
+
         except Exception as e:
             self.logger.error(f"Error getting match!\nMatch:{match_id}\nError: {e}")
-            raise Exception(f"Error getting match: {e}")
+            raise DatabaseGetMatchException(f"Error getting match: {e}")
         finally:
             db.close()
