@@ -1,11 +1,11 @@
 from uuid import UUID
 
 from src.domain.models.match import Match
-from src.domain.repositories.match_repository import MatchRepository
+from src.domain.repositories.match_database_repository import MatchDatabaseRepository
 from src.domain.services.logger_interface import LoggerInterface
 
 
-class InMemoryRepository(MatchRepository):
+class InMemoryRepository(MatchDatabaseRepository):
     cache: dict[UUID, Match] = {}
 
     def __init__(self, logger: LoggerInterface):

@@ -13,7 +13,7 @@ from src.domain.errors import (
 from src.domain.models.match import Match
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
-from src.domain.repositories.match_repository import MatchRepository
+from src.domain.repositories.match_database_repository import MatchDatabaseRepository
 from src.domain.services.logger_interface import LoggerInterface
 
 
@@ -22,8 +22,12 @@ class MatchService:
     PLAYER_IDS = ["X", "O"]
     MOVEMENT_POSITIONS = ["X", "x", "Y", "y"]
 
-    def __init__(self, match_repository: MatchRepository, logger: LoggerInterface):
-        self.match_repository = match_repository
+    def __init__(
+        self,
+        match_database_repository: MatchDatabaseRepository,
+        logger: LoggerInterface,
+    ):
+        self.match_database_repository = match_database_repository
         self.logger = logger
 
     def init_board(self) -> list[list[str | None]]:
@@ -147,14 +151,14 @@ class MatchService:
             turn=random.choice(self.PLAYER_IDS),
             status=Status.PLAYING,
         )
-        self.match_repository.save_match(match)
+        self.match_database_repository.save_match(match)
         self.logger.info(f"Match created: {match.id}")
 
         return match
 
     def move(self, movement: Movement) -> str:
         message = ""
-        if match := self.match_repository.get_match(movement.matchId):
+        if match := self.match_database_repository.get_match(movement.matchId):
             self.validate_movement(movement, match)
 
             x = self.get_x(movement.position)
@@ -171,7 +175,7 @@ class MatchService:
                 case Status.PLAYING:
                     message = f"Movement performed. Next turn: {match.turn}"
 
-            self.match_repository.update_match(match)
+            self.match_database_repository.update_match(match)
 
         else:
             raise MatchNotFoundException(f"Match {movement.matchId} not found")
@@ -181,7 +185,7 @@ class MatchService:
         return message
 
     def get_match_status(self, match_id: UUID) -> Status:
-        if match := self.match_repository.get_match(match_id):
+        if match := self.match_database_repository.get_match(match_id):
             return match.status
         else:
             self.logger.info(f"Match not found: {match_id}")

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from src.application.routers import router
+from src.infra.routers import router
 
 client = TestClient(router)
 

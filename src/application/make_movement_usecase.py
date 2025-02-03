@@ -1,14 +1,16 @@
 from src.domain.models.movement import Movement
+from src.domain.repositories.match_database_repository import MatchDatabaseRepository
+from src.domain.services.logger_interface import LoggerInterface
 from src.domain.services.match_service import MatchService
-from src.infra.logging_service import LoggingService
-from src.infra.repositories.postgresql_repository import PostgreSQLRepository
 
 
 class MakeMovementUseCase:
-    def __init__(self):
-        self.logger = LoggingService()
-        self.match_repository = PostgreSQLRepository(self.logger)
-        self.match_service = MatchService(self.match_repository, self.logger)
+    def __init__(
+        self,
+        match_database_repository: MatchDatabaseRepository,
+        logger: LoggerInterface,
+    ):
+        self.match_service = MatchService(match_database_repository, logger)
 
     def run(self, movement: Movement) -> str:
         return self.match_service.move(movement)

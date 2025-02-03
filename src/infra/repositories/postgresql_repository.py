@@ -13,7 +13,7 @@ from src.domain.errors import (
     DatabaseUpdateMatchException,
 )
 from src.domain.models.match import Match
-from src.domain.repositories.match_repository import MatchRepository
+from src.domain.repositories.match_database_repository import MatchDatabaseRepository
 from src.domain.services.logger_interface import LoggerInterface
 from src.infra.entities.match_db import Base, MatchDB
 
@@ -21,7 +21,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
-class PostgreSQLRepository(MatchRepository):
+class PostgreSQLRepository(MatchDatabaseRepository):
 
     def __init__(self, logger: LoggerInterface):
         self.logger = logger

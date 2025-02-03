@@ -22,7 +22,7 @@ from src.infra.repositories.in_memory_repository import InMemoryRepository
 @pytest.fixture
 def service():
     return MatchService(
-        match_repository=InMemoryRepository(MagicMock()),
+        match_database_repository=InMemoryRepository(MagicMock()),
         logger=LoggingService(),
     )
 
