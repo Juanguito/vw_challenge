@@ -7,6 +7,9 @@ local_setup:
 local_clean:
 	rm -rf .venv
 
+local_run:
+	fastapi dev main.py
+
 up:
 	docker-compose up --build -d
 
@@ -34,6 +37,7 @@ help:
 	@echo "Commands:"
 	@echo "  local_setup: Creates a virtual environment and installs the dependencies."
 	@echo "  local_clean: Removes the virtual environment."
+	@echo "  local_run: Starts the application locally."
 	@echo "  up: Starts application containers."
 	@echo "  down: Stops application containers."
 	@echo "  check: Formats the code using black, verifies types with mypy and linting with flake8."
