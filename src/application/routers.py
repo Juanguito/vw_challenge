@@ -4,10 +4,11 @@ from uuid import UUID
 
 from fastapi import APIRouter
 
+from src.application.create_match_usecase import CreateMatchUseCase
+from src.application.get_match_status_usecase import GetMatchStatusUseCase
+from src.application.make_movement_usecase import MakeMovementUseCase
 from src.domain.models.movement import Movement
-from src.domain.services.match_service import MatchService
-from src.infra.repositories.logging_service import LoggingService
-from src.infra.repositories.postgresql_repository import PostgreSQLRepository
+from src.infra.logging_service import LoggingService
 
 router = APIRouter()
 
@@ -19,14 +20,12 @@ logging.basicConfig(
 )
 
 logger = LoggingService()
-match_repository = PostgreSQLRepository(logger)
-match_service = MatchService(match_repository, logger)
 
 
 @router.get("/create")
 def create_match() -> dict:
     logger.info("Create match request received")
-    match = match_service.create_match()
+    match = CreateMatchUseCase().run()
 
     return {
         "matchId": match.id,
@@ -37,7 +36,7 @@ def create_match() -> dict:
 @router.post("/move")
 def move(movement: Movement) -> dict:
     logger.info(f"New movement request received: {movement}")
-    message = match_service.move(movement)
+    message = MakeMovementUseCase().run(movement=movement)
 
     return {"message": message}
 
@@ -45,6 +44,6 @@ def move(movement: Movement) -> dict:
 @router.get("/status/{matchId}")
 def match_status(matchId: UUID) -> dict:
     logger.info(f"Get match status request received: {matchId}")
-    status = match_service.get_match_status(matchId)
+    status = GetMatchStatusUseCase().run(match_id=matchId)
 
     return {"status": status}

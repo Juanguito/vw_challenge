@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
 from src.domain.services.match_service import MatchService
+from src.infra.logging_service import LoggingService
 from src.infra.repositories.in_memory_repository import InMemoryRepository
-from src.infra.repositories.logging_service import LoggingService
 
 
 @pytest.fixture
