@@ -1,11 +1,9 @@
-import json
 import os
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from dotenv import load_dotenv
-from sqlalchemy import Column, String, create_engine
-from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from src.domain.errors import (
     DatabaseEnvVarNotSetException,
@@ -15,50 +13,12 @@ from src.domain.errors import (
     DatabaseUpdateMatchException,
 )
 from src.domain.models.match import Match
-from src.domain.models.status import Status
 from src.domain.repositories.match_repository import MatchRepository
 from src.domain.services.logger_interface import LoggerInterface
+from src.infra.entities.match_db import Base, MatchDB
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-class MatchDB(Base):
-    __tablename__ = "matches"
-
-    id = Column(UUID_PG(as_uuid=True), primary_key=True, default=uuid4, index=True)
-    status = Column(String, nullable=False)
-    turn = Column(String, nullable=False)
-    board = Column(String, nullable=False)
-
-    @staticmethod
-    def board_to_string(board: list[list[str | None]]) -> str:
-        return json.dumps(board)
-
-    @staticmethod
-    def string_to_board(board: str) -> list[list[str | None]]:
-        return json.loads(board)
-
-    @staticmethod
-    def from_match(match: Match) -> "MatchDB":
-        return MatchDB(
-            id=match.id,
-            status=match.status.value,
-            turn=match.turn,
-            board=MatchDB.board_to_string(match.board),
-        )
-
-    def to_match(self) -> Match:
-        return Match(
-            id=UUID(str(self.id)),
-            status=Status(self.status),
-            turn=str(self.turn),
-            board=MatchDB.string_to_board(str(self.board)),
-        )
 
 
 class PostgreSQLRepository(MatchRepository):

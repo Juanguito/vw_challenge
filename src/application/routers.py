@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from src.application.create_match_usecase import CreateMatchUseCase
 from src.application.get_match_status_usecase import GetMatchStatusUseCase
 from src.application.make_movement_usecase import MakeMovementUseCase
+from src.domain.errors import to_http_exception
 from src.domain.models.movement import Movement
 from src.infra.logging_service import LoggingService
 
@@ -25,7 +26,11 @@ logger = LoggingService()
 @router.get("/create")
 def create_match() -> dict:
     logger.info("Create match request received")
-    match = CreateMatchUseCase().run()
+
+    try:
+        match = CreateMatchUseCase().run()
+    except Exception as e:
+        raise to_http_exception(e)
 
     return {
         "matchId": match.id,
@@ -36,7 +41,11 @@ def create_match() -> dict:
 @router.post("/move")
 def move(movement: Movement) -> dict:
     logger.info(f"New movement request received: {movement}")
-    message = MakeMovementUseCase().run(movement=movement)
+
+    try:
+        message = MakeMovementUseCase().run(movement=movement)
+    except Exception as e:
+        raise to_http_exception(e)
 
     return {"message": message}
 
@@ -44,6 +53,10 @@ def move(movement: Movement) -> dict:
 @router.get("/status/{matchId}")
 def match_status(matchId: UUID) -> dict:
     logger.info(f"Get match status request received: {matchId}")
-    status = GetMatchStatusUseCase().run(match_id=matchId)
+
+    try:
+        status = GetMatchStatusUseCase().run(match_id=matchId)
+    except Exception as e:
+        raise to_http_exception(e)
 
     return {"status": status}
