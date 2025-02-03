@@ -6,7 +6,7 @@ class PlayerNotValidException(Exception):
         self.message = message
 
 
-class PositionNotValidException(Exception):
+class SquareNotValidException(Exception):
     def __init__(self, message: str):
         self.message = message
 
@@ -21,12 +21,12 @@ class TurnNotValidException(Exception):
         self.message = message
 
 
-class PositionOutOfBoundsException(Exception):
+class SquareOutOfBoundsException(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class PositionNotAvailableException(Exception):
+class SquareNotAvailableException(Exception):
     def __init__(self, message: str):
         self.message = message
 
@@ -64,11 +64,11 @@ class DatabaseGetMatchException(Exception):
 def to_http_exception(exception: Exception) -> HTTPException:
     if (
         isinstance(exception, PlayerNotValidException)
-        or isinstance(exception, PositionNotValidException)
+        or isinstance(exception, SquareNotValidException)
         or isinstance(exception, MatchAlreadyEndedException)
         or isinstance(exception, TurnNotValidException)
-        or isinstance(exception, PositionOutOfBoundsException)
-        or isinstance(exception, PositionNotAvailableException)
+        or isinstance(exception, SquareOutOfBoundsException)
+        or isinstance(exception, SquareNotAvailableException)
         or isinstance(exception, DatabaseSaveMatchException)
         or isinstance(exception, DatabaseUpdateMatchException)
         or isinstance(exception, DatabaseGetMatchException)

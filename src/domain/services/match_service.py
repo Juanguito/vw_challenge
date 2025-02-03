@@ -1,13 +1,12 @@
-import random
 from uuid import UUID, uuid4
 
 from src.domain.errors import (
     MatchAlreadyEndedException,
     MatchNotFoundException,
     PlayerNotValidException,
-    PositionNotAvailableException,
-    PositionNotValidException,
-    PositionOutOfBoundsException,
+    SquareNotAvailableException,
+    SquareNotValidException,
+    SquareOutOfBoundsException,
     TurnNotValidException,
 )
 from src.domain.models.match import Match
@@ -37,11 +36,11 @@ class MatchService:
 
         return board
 
-    def get_x(self, position: dict[str, int]) -> int:
-        return position["x"] if position.get("x") is not None else position["X"]
+    def get_x(self, square: dict[str, int]) -> int:
+        return square["x"] if square.get("x") is not None else square["X"]
 
-    def get_y(self, position: dict[str, int]) -> int:
-        return position["y"] if position.get("y") is not None else position["Y"]
+    def get_y(self, square: dict[str, int]) -> int:
+        return square["y"] if square.get("y") is not None else square["Y"]
 
     def validate_movement(self, movement: Movement, match: Match) -> None:
         if movement.playerId not in self.PLAYER_IDS:
@@ -51,13 +50,13 @@ class MatchService:
                 f"Player is not valid, must be one of: {player_list}"
             )
 
-        if not ("x" in movement.position or "X" in movement.position) or not (
-            "y" in movement.position or "Y" in movement.position
+        if not ("x" in movement.square or "X" in movement.square) or not (
+            "y" in movement.square or "Y" in movement.square
         ):
-            positions_list = [f"{positions}" for positions in self.MOVEMENT_POSITIONS]
-            self.logger.info(f"Position is not valid: {movement.position}")
-            raise PositionNotValidException(
-                f"Position is not valid, must be one of: {positions_list}",
+            squares_list = [f"{squares}" for squares in self.MOVEMENT_POSITIONS]
+            self.logger.info(f"Square is not valid: {movement.square}")
+            raise SquareNotValidException(
+                f"Square is not valid, must be one of: {squares_list}",
             )
 
         if match.status != Status.PLAYING:
@@ -70,22 +69,20 @@ class MatchService:
                 f"Player {movement.playerId}, it's not your turn"
             )
 
-        x = self.get_x(movement.position)
-        y = self.get_y(movement.position)
+        x = self.get_x(movement.square)
+        y = self.get_y(movement.square)
 
         if x >= self.BOARD_SIZE or y >= self.BOARD_SIZE:
-            self.logger.info(f"Position [{x}, {y}] is out of the board")
-            raise PositionOutOfBoundsException(
-                f"Position [{x}, {y}] is out of the board"
-            )
+            self.logger.info(f"Square [{x}, {y}] is out of the board")
+            raise SquareOutOfBoundsException(f"Square [{x}, {y}] is out of the board")
 
         if match.board[x][y] is not None:
-            raise PositionNotAvailableException(f"Position [{x}, {y}] is not available")
+            raise SquareNotAvailableException(f"Square [{x}, {y}] is not available")
 
     def check_same_row(self, board: list[list[str | None]]) -> bool:
         for row in board:
             value = row[0]
-            if value is not None and all(position == value for position in row):
+            if value is not None and all(square == value for square in row):
                 return True
 
         return False
@@ -148,7 +145,7 @@ class MatchService:
         match = Match(
             id=uuid4(),
             board=self.init_board(),
-            turn=random.choice(self.PLAYER_IDS),
+            turn="X",  # Convention that X plays first
             status=Status.PLAYING,
         )
         self.match_database_repository.save_match(match)
@@ -161,8 +158,8 @@ class MatchService:
         if match := self.match_database_repository.get_match(movement.matchId):
             self.validate_movement(movement, match)
 
-            x = self.get_x(movement.position)
-            y = self.get_y(movement.position)
+            x = self.get_x(movement.square)
+            y = self.get_y(movement.square)
             match.board[x][y] = movement.playerId
 
             match.status = self.check_movement(match.board)

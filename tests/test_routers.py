@@ -34,7 +34,7 @@ def test_make_valid_move(mock_move):
     move_data = {
         "matchId": str(uuid.uuid4()),
         "playerId": "X",
-        "position": {"x": 0, "y": 0},
+        "square": {"x": 0, "y": 0},
     }
 
     response = client.post("/move", json=move_data)
@@ -49,12 +49,12 @@ def test_make_valid_move(mock_move):
 # @patch("src.domain.services.match_service.MatchService.move")
 # def test_make_invalid_move(mock_move):
 #     mock_move.side_effect = HTTPException(
-#         status_code=400, detail="Position is not available"
+#         status_code=400, detail="Square is not available"
 #     )
 #     move_data = {
 #         "matchId": str(uuid.uuid4()),
 #         "playerId": "X",
-#         "position": {"x": 0, "y": 0},
+#         "square": {"x": 0, "y": 0},
 #     }
 
 #     # client.post("/move", json=move_data)
