@@ -1,7 +1,7 @@
 import json
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from sqlalchemy.orm import DeclarativeBase
 
@@ -20,6 +20,10 @@ class MatchDB(Base):
     status = Column(String, nullable=False)
     turn = Column(String, nullable=False)
     board = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
 
     @staticmethod
     def board_to_string(board: list[list[str | None]]) -> str:
