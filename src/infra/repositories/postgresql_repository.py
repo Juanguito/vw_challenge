@@ -47,7 +47,7 @@ class MatchDB(Base):
 
     def to_match(self) -> Match:
         return Match(
-            id=self.id,
+            id=UUID(str(self.id)),
             status=Status(self.status),
             turn=str(self.turn),
             board=MatchDB.string_to_board(str(self.board)),
@@ -58,6 +58,9 @@ class PostgreSQLRepository(MatchRepository):
 
     def __init__(self, logger: LoggerInterface):
         self.logger = logger
+
+        if DATABASE_URL is None:
+            raise Exception("DATABASE_URL env variable is not set")
 
         self.engine = create_engine(DATABASE_URL)
 

@@ -14,10 +14,10 @@ down:
 	docker-compose down
 
 check:
-	@echo "🔍 Analizando código con Flake8..."
-	flake8 $(PYTHON_FILES)
 	@echo "🔧 Formateando código con Black..."
 	black $(PYTHON_FILES)
+	@echo "🔍 Analizando código con Flake8..."
+	flake8 $(PYTHON_FILES)
 	@echo "📊 Verificando tipos con MyPy..."
 	mypy $(PYTHON_FILES)
 
