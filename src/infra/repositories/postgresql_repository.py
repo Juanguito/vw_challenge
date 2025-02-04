@@ -61,9 +61,9 @@ class PostgreSQLRepository(MatchDatabaseRepository):
             with self.SessionLocal() as session:
                 statement = select(MatchDB).filter(MatchDB.id == match.id)
                 if match_instance := session.execute(statement).scalar_one_or_none():
-                    match_instance.status = match.status.value
-                    match_instance.turn = match.turn
-                    match_instance.board = MatchDB.board_to_string(match.board)
+                    match_instance.status = match.status.value  # type: ignore
+                    match_instance.turn = match.turn  # type: ignore
+                    match_instance.board = MatchDB.board_to_string(match.board)  # type: ignore
 
                     session.commit()
 
