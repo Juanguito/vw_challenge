@@ -2,12 +2,25 @@ import logging
 import sys
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from src.application.create_match_usecase import CreateMatchUseCase
 from src.application.get_match_status_usecase import GetMatchStatusUseCase
 from src.application.make_movement_usecase import MakeMovementUseCase
-from src.domain.errors import to_http_exception
+from src.domain.errors import (
+    DatabaseEnvVarNotSetException,
+    DatabaseGetMatchException,
+    DatabaseMatchNotFoundException,
+    DatabaseSaveMatchException,
+    DatabaseUpdateMatchException,
+    MatchAlreadyEndedException,
+    MatchNotFoundException,
+    PlayerNotValidException,
+    SquareNotAvailableException,
+    SquareNotValidException,
+    SquareOutOfBoundsException,
+    TurnNotValidException,
+)
 from src.domain.models.movement import Movement
 from src.infra.logging_service import LoggingService
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
@@ -22,6 +35,30 @@ logging.basicConfig(
 )
 
 logger = LoggingService()
+
+
+def to_http_exception(exception: Exception) -> HTTPException:
+    if (
+        isinstance(exception, PlayerNotValidException)
+        or isinstance(exception, SquareNotValidException)
+        or isinstance(exception, MatchAlreadyEndedException)
+        or isinstance(exception, TurnNotValidException)
+        or isinstance(exception, SquareOutOfBoundsException)
+        or isinstance(exception, SquareNotAvailableException)
+        or isinstance(exception, DatabaseSaveMatchException)
+        or isinstance(exception, DatabaseUpdateMatchException)
+        or isinstance(exception, DatabaseGetMatchException)
+    ):
+        return HTTPException(status_code=400, detail=exception.message)
+
+    if (
+        isinstance(exception, MatchNotFoundException)
+        or isinstance(exception, DatabaseEnvVarNotSetException)
+        or isinstance(exception, DatabaseMatchNotFoundException)
+    ):
+        return HTTPException(status_code=404, detail=exception.message)
+
+    return HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/create")

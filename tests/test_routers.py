@@ -1,13 +1,28 @@
 import uuid
 from unittest.mock import MagicMock, patch
 
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from src.application.create_match_usecase import CreateMatchUseCase
 from src.application.get_match_status_usecase import GetMatchStatusUseCase
 from src.application.make_movement_usecase import MakeMovementUseCase
+from src.domain.errors import (
+    DatabaseEnvVarNotSetException,
+    DatabaseGetMatchException,
+    DatabaseMatchNotFoundException,
+    DatabaseSaveMatchException,
+    DatabaseUpdateMatchException,
+    MatchAlreadyEndedException,
+    MatchNotFoundException,
+    PlayerNotValidException,
+    SquareNotAvailableException,
+    SquareNotValidException,
+    SquareOutOfBoundsException,
+    TurnNotValidException,
+)
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
-from src.infra.routers import router
+from src.infra.routers import router, to_http_exception
 
 client = TestClient(router)
 
@@ -52,6 +67,49 @@ def test_make_valid_move(mock_move, mock_postgre):
 
     assert response.status_code == 200
     assert response.json() == {"message": "Movement performed. Next turn: O"}
+
+
+def test_to_http_exception_400():
+    exceptions = [
+        PlayerNotValidException(""),
+        SquareNotValidException(""),
+        MatchAlreadyEndedException(""),
+        TurnNotValidException(""),
+        SquareOutOfBoundsException(""),
+        SquareNotAvailableException(""),
+        DatabaseSaveMatchException(""),
+        DatabaseUpdateMatchException(""),
+        DatabaseGetMatchException(""),
+    ]
+
+    for exc in exceptions:
+        result = to_http_exception(exc)
+
+        assert isinstance(result, HTTPException)
+        assert result.status_code == 400
+
+
+def test_to_http_exception_404():
+    exceptions = [
+        MatchNotFoundException(""),
+        DatabaseEnvVarNotSetException(""),
+        DatabaseMatchNotFoundException(""),
+    ]
+
+    for exc in exceptions:
+        result = to_http_exception(exc)
+
+        assert isinstance(result, HTTPException)
+        assert result.status_code == 404
+
+
+def test_to_http_exception_500():
+    exc = Exception("")
+
+    result = to_http_exception(exc)
+
+    assert isinstance(result, HTTPException)
+    assert result.status_code == 500
 
 
 # TODO - Next test is causing some issues,
