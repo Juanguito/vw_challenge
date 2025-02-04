@@ -2,7 +2,7 @@ import os
 from uuid import UUID
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from src.domain.errors import (
@@ -37,63 +37,59 @@ class PostgreSQLRepository(MatchDatabaseRepository):
         Base.metadata.create_all(bind=self.engine)
 
     def save_match(self, match: Match) -> Match:
-        db = self.SessionLocal()
+        self.logger.info(f"Saving match:\n{match}")
+
         try:
-            self.logger.info(f"Saving match:\n{match}")
-            match_db = MatchDB.from_match(match)
+            with self.SessionLocal() as session:
+                match_db = MatchDB.from_match(match)
 
-            db.add(match_db)
-            db.commit()
-            db.refresh(match_db)
-            self.logger.info("Match SAVED")
-
-            return match_db.to_match()
-
-        except Exception as e:
-            db.rollback()
-            self.logger.error(f"Error saving match:{match}\nError: {e}")
-            raise DatabaseSaveMatchException(f"Error saving match: {e}")
-        finally:
-            db.close()
-
-    def update_match(self, match: Match) -> Match:
-        db = self.SessionLocal()
-        try:
-            self.logger.info(f"Updating match:\n{match}")
-            if match_db := db.query(MatchDB).filter(MatchDB.id == match.id).first():
-                match_db.status = match.status.value
-                match_db.turn = match.turn
-                match_db.board = MatchDB.board_to_string(match.board)
-
-                db.commit()
-                db.refresh(match_db)
-                self.logger.info("Match UPDATED!")
+                session.add(match_db)
+                session.commit()
+                session.refresh(match_db)
+                self.logger.info("Match SAVED")
 
                 return match_db.to_match()
-            else:
-                raise DatabaseMatchNotFoundException("Match not found")
 
         except Exception as e:
-            db.rollback()
+            self.logger.error(f"Error saving match:{match}\nError: {e}")
+            raise DatabaseSaveMatchException(f"Error saving match: {e}")
+
+    def update_match(self, match: Match) -> Match:
+        self.logger.info(f"Updating match:\n{match}")
+
+        try:
+            with self.SessionLocal() as session:
+                statement = select(MatchDB).filter(MatchDB.id == match.id)
+                if match_instance := session.execute(statement).scalar_one_or_none():
+                    match_instance.status = match.status.value
+                    match_instance.turn = match.turn
+                    match_instance.board = MatchDB.board_to_string(match.board)
+
+                    session.commit()
+
+                    self.logger.info("Match UPDATED!")
+
+                    return match_instance.to_match()
+                else:
+                    raise DatabaseMatchNotFoundException("Match not found")
+
+        except Exception as e:
             self.logger.error(f"Error updating match:{match}\nError: {e}")
             raise DatabaseUpdateMatchException(f"Error updating match: {e}")
-        finally:
-            db.close()
 
     def get_match(self, match_id: UUID) -> Match | None:
-        db = self.SessionLocal()
+        self.logger.info(f"Retrieving match:\n{match_id}")
+
         try:
-            self.logger.info(f"Retrieving match:\n{match_id}")
-            if match_db := db.query(MatchDB).filter(MatchDB.id == match_id).first():
-                match = match_db.to_match()
-                self.logger.info(f"Match: {match} RETRIEVED!")
+            with self.SessionLocal() as session:
+                statement = select(MatchDB).filter(MatchDB.id == match_id)
+                if match_instance := session.execute(statement).scalar_one_or_none():
+                    match = match_instance.to_match()
+                    self.logger.info(f"Match: {match} RETRIEVED!")
 
-                return match
-            else:
+                    return match
+
                 return None
-
         except Exception as e:
             self.logger.error(f"Error getting match!\nMatch:{match_id}\nError: {e}")
             raise DatabaseGetMatchException(f"Error getting match: {e}")
-        finally:
-            db.close()
