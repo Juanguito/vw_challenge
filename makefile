@@ -28,7 +28,7 @@ logs:
 	docker-compose logs -f
 
 test:
-	pytest
+	pytest -s
 
 
 .PHONY: help
