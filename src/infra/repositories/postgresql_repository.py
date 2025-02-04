@@ -72,7 +72,8 @@ class PostgreSQLRepository(MatchDatabaseRepository):
                     return match_instance.to_match()
                 else:
                     raise DatabaseMatchNotFoundException("Match not found")
-
+        except DatabaseMatchNotFoundException as e:
+            raise e
         except Exception as e:
             self.logger.error(f"Error updating match:{match}\nError: {e}")
             raise DatabaseUpdateMatchException(f"Error updating match: {e}")
