@@ -128,7 +128,6 @@ I then began working on the database implementation:
 - I implemented `infra -> entities` to define a `matches` table and its columns.
     - I added methods `to_match()` and `from_match()` to map from the domain model to this infra entity, and viceversa.
 - I implemented `infra -> repositories -> postgresql_repository` with the required operations by the `match_database_repository`.
-    - NOTE: I'm not sure to have used sessions and connections in the best way, as I'm not experienced too much with them (as in my previous companies that matters were previously defined and I not interacted to much with that kind of code), but I don't have enought time to research about it. I'll try to improve it after the delivery of this challenge.
 - I used Alembic to create an `Initial migration`
 
 
