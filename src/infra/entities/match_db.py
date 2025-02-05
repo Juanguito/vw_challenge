@@ -1,9 +1,10 @@
 import json
+from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, DateTime, String, func
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from src.domain.models.match import Match
 from src.domain.models.status import Status
@@ -16,13 +17,18 @@ class Base(DeclarativeBase):
 class MatchDB(Base):
     __tablename__ = "matches"
 
-    id = Column(UUID_PG(as_uuid=True), primary_key=True, default=uuid4, index=True)
-    status = Column(String, nullable=False)
-    turn = Column(String, nullable=False)
-    board = Column(String, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    # I found that mypy type errors would be fixed declaring fields this way
+    # From https://docs.pydantic.dev/latest/concepts/models/#arbitrary-class-instances
+    # and https://docs.sqlalchemy.org/en/20/orm/declarative_tables.html#orm-declarative-table
+    id: Mapped[str] = mapped_column(
+        UUID_PG(as_uuid=True), primary_key=True, default=uuid4, index=True
+    )
+    status: Mapped[str] = mapped_column(nullable=False)
+    turn: Mapped[str] = mapped_column(nullable=False)
+    board: Mapped[str] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        nullable=False, default=func.now(), onupdate=func.now()
     )
 
     @staticmethod
@@ -44,7 +50,7 @@ class MatchDB(Base):
 
     def to_match(self) -> Match:
         return Match(
-            id=UUID(str(self.id)),
+            id=UUID(self.id),
             status=Status(self.status),
             turn=str(self.turn),
             board=MatchDB.string_to_board(str(self.board)),

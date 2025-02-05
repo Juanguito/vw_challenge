@@ -70,7 +70,7 @@ I decided to use `Docker `containers as they allow to be independent the service
 
 The use of a `PostgreSQL` database, `SQLAlchemy` and `Alembic`, is due to they were the tools I used in my last company and they seem to be very extended in the industry.
 
-Same for `Flake8`, `Black` and `Mypy`, as they are very extended Python tools. (Three mypy errors remain unresolved. I will address these in future work.)
+Same for `Flake8`, `Black` and `Mypy`, as they are very extended Python tools.
 
 I did'nt implemented any CI/CD pipeline as I don't have time enough. Anyway, it would be interesting to run it through, i.e. using Github Actions.
 
