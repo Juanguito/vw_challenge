@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from src.domain.errors import (
+from src.domain.exception.errors import (
     MatchAlreadyEndedException,
     MatchNotFoundException,
     PlayerNotValidException,
@@ -9,11 +9,11 @@ from src.domain.errors import (
     SquareOutOfBoundsException,
     TurnNotValidException,
 )
+from src.domain.logging.logger_interface import LoggerInterface
 from src.domain.models.match import Match
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
 from src.domain.repositories.match_database_repository import MatchDatabaseRepository
-from src.domain.services.logger_interface import LoggerInterface
 
 
 class MatchService:

@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.domain.errors import (
+from src.domain.exception.errors import (
     DatabaseGetMatchException,
     DatabaseMatchNotFoundException,
     DatabaseSaveMatchException,
