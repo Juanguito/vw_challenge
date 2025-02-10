@@ -43,12 +43,14 @@ class MatchService:
         return square["y"] if square.get("y") is not None else square["Y"]
 
     def _validate_movement(self, movement: Movement, match: Match) -> None:
-        if movement.playerId not in self.PLAYER_IDS:
+        if movement.playerId.upper() not in self.PLAYER_IDS:
             player_list = [f"{player}" for player in self.PLAYER_IDS]
             self.logger.info(f"Player is not valid: {movement.playerId}")
             raise PlayerNotValidException(
                 f"Player is not valid, must be one of: {player_list}"
             )
+
+        movement.playerId = movement.playerId.upper()
 
         if not ("x" in movement.square or "X" in movement.square) or not (
             "y" in movement.square or "Y" in movement.square

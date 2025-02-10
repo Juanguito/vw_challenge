@@ -22,6 +22,7 @@ from src.domain.exception.errors import (
     TurnNotValidException,
 )
 from src.domain.models.movement import Movement
+from src.infra.api.models import MovementRequest
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
 from src.logging.logging_service import LoggingService
 
@@ -80,14 +81,20 @@ def create_match() -> dict:
 
 
 @router.post("/move")
-def move(movement: Movement) -> dict:
+def move(movement: MovementRequest) -> dict:
     logger.info(f"New movement request received: {movement}")
 
     try:
         message = MakeMovementUseCase(
             match_database_repository=PostgreSQLRepository(logger=logger),
             logger=logger,
-        ).run(movement=movement)
+        ).run(
+            movement=Movement(
+                matchId=UUID(movement.matchId),
+                playerId=movement.playerId,
+                square={"x": movement.square.x, "y": movement.square.y},
+            )
+        )
     except Exception as e:
         raise to_http_exception(e)
 
