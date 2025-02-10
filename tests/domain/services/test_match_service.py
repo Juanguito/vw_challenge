@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.domain.errors import (
+from src.domain.exception.errors import (
     MatchAlreadyEndedException,
     MatchNotFoundException,
     PlayerNotValidException,
@@ -15,8 +15,8 @@ from src.domain.errors import (
 from src.domain.models.movement import Movement
 from src.domain.models.status import Status
 from src.domain.services.match_service import MatchService
-from src.infra.logging_service import LoggingService
 from src.infra.repositories.in_memory_repository import InMemoryRepository
+from src.logging.logging_service import LoggingService
 
 
 @pytest.fixture

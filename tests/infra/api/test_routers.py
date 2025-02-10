@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from src.application.create_match_usecase import CreateMatchUseCase
 from src.application.get_match_status_usecase import GetMatchStatusUseCase
 from src.application.make_movement_usecase import MakeMovementUseCase
-from src.domain.errors import (
+from src.domain.exception.errors import (
     DatabaseEnvVarNotSetException,
     DatabaseGetMatchException,
     DatabaseMatchNotFoundException,
@@ -21,8 +21,8 @@ from src.domain.errors import (
     SquareOutOfBoundsException,
     TurnNotValidException,
 )
+from src.infra.api.routers import router, to_http_exception
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
-from src.infra.routers import router, to_http_exception
 
 client = TestClient(router)
 

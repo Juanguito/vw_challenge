@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from src.domain.services.logger_interface import LoggerInterface
+from src.domain.logging.logger_interface import LoggerInterface
 
 
 class LoggingService(LoggerInterface):

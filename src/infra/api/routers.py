@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from src.application.create_match_usecase import CreateMatchUseCase
 from src.application.get_match_status_usecase import GetMatchStatusUseCase
 from src.application.make_movement_usecase import MakeMovementUseCase
-from src.domain.errors import (
+from src.domain.exception.errors import (
     DatabaseEnvVarNotSetException,
     DatabaseGetMatchException,
     DatabaseMatchNotFoundException,
@@ -22,8 +22,8 @@ from src.domain.errors import (
     TurnNotValidException,
 )
 from src.domain.models.movement import Movement
-from src.infra.logging_service import LoggingService
 from src.infra.repositories.postgresql_repository import PostgreSQLRepository
+from src.logging.logging_service import LoggingService
 
 router = APIRouter()
 

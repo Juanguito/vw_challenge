@@ -5,16 +5,16 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, insert, select
 from sqlalchemy.orm import sessionmaker
 
-from src.domain.errors import (
+from src.domain.exception.errors import (
     DatabaseEnvVarNotSetException,
     DatabaseGetMatchException,
     DatabaseMatchNotFoundException,
     DatabaseSaveMatchException,
     DatabaseUpdateMatchException,
 )
+from src.domain.logging.logger_interface import LoggerInterface
 from src.domain.models.match import Match
 from src.domain.repositories.match_database_repository import MatchDatabaseRepository
-from src.domain.services.logger_interface import LoggerInterface
 from src.infra.entities.match_db import Base, MatchDB
 
 load_dotenv()
