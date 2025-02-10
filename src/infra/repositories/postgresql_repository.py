@@ -2,7 +2,7 @@ import os
 from uuid import UUID
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, insert, select
 from sqlalchemy.orm import sessionmaker
 
 from src.domain.errors import (
@@ -43,13 +43,18 @@ class PostgreSQLRepository(MatchDatabaseRepository):
             with self.SessionLocal() as session:
                 match_db = MatchDB.from_match(match)
 
-                session.add(match_db)
+                stmt = insert(MatchDB).values(
+                    id=match_db.id,
+                    status=match_db.status,
+                    turn=match_db.turn,
+                    board=match_db.board,
+                )
+                session.execute(stmt)
                 session.commit()
-                session.refresh(match_db)
-                self.logger.info("Match SAVED")
+
+                self.logger.info(f"Match: {match_db.id} SAVED!")
 
                 return match_db.to_match()
-
         except Exception as e:
             self.logger.error(f"Error saving match:{match}\nError: {e}")
             raise DatabaseSaveMatchException(f"Error saving match: {e}")
@@ -67,7 +72,7 @@ class PostgreSQLRepository(MatchDatabaseRepository):
 
                     session.commit()
 
-                    self.logger.info("Match UPDATED!")
+                    self.logger.info(f"Match: {match} UPDATED!")
 
                     return match_instance.to_match()
                 else:

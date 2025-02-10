@@ -42,7 +42,7 @@ class MatchDB(Base):
     @staticmethod
     def from_match(match: Match) -> "MatchDB":
         return MatchDB(
-            id=match.id,
+            id=str(match.id),
             status=match.status.value,
             turn=match.turn,
             board=MatchDB.board_to_string(match.board),
@@ -50,7 +50,7 @@ class MatchDB(Base):
 
     def to_match(self) -> Match:
         return Match(
-            id=UUID(self.id),
+            id=UUID(str(self.id)),
             status=Status(self.status),
             turn=str(self.turn),
             board=MatchDB.string_to_board(str(self.board)),
